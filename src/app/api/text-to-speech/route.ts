@@ -1,50 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
-
-const elevenlabs = new ElevenLabsClient({
-  apiKey: process.env.ELEVENLABS_API_KEY,
-});
+import { createDialogue } from "@/actions/dialogue";
+import { CreateDialogueRequest } from "@/types";
 
 export async function POST(request: NextRequest) {
   try {
-    const { text, voiceId } = await request.json();
+    const body: CreateDialogueRequest = await request.json();
 
-    if (!text) {
-      return NextResponse.json({ error: "Text is required" }, { status: 400 });
+    if (!body.inputs || body.inputs.length === 0) {
+      return NextResponse.json({ error: "Dialogue inputs are required" }, { status: 400 });
     }
 
-    if (!process.env.ELEVENLABS_API_KEY) {
+    // Validate each dialogue input
+    for (const input of body.inputs) {
+      if (!input.text || !input.voiceId) {
+        return NextResponse.json(
+          { error: "Each dialogue input must have text and voiceId" },
+          { status: 400 }
+        );
+      }
+    }
+
+    const result = await createDialogue(body);
+
+    if (!result.ok) {
+      console.error("Error generating dialogue:", result.error);
       return NextResponse.json(
-        { error: "ElevenLabs API key is not configured" },
+        { error: result.error },
         { status: 500 }
       );
     }
 
-    const audio = await elevenlabs.textToSpeech.convert(
-      voiceId || "JBFqnCBsd6RMkjVDRZzb", // Default to George if no voice selected
-      {
-        text: text,
-        modelId: "eleven_multilingual_v2",
-        outputFormat: "mp3_44100_128",
-      }
-    );
-
-    const chunks: Uint8Array[] = [];
-    for await (const chunk of audio) {
-      chunks.push(chunk);
-    }
-    const audioBuffer = Buffer.concat(chunks);
-
-    return new NextResponse(audioBuffer, {
-      headers: {
-        "Content-Type": "audio/mpeg",
-        "Content-Length": audioBuffer.length.toString(),
-      },
+    return NextResponse.json({
+      audioBase64: result.value.audioBase64,
+      processingTimeMs: result.value.processingTimeMs,
     });
   } catch (error) {
-    console.error("Error generating speech:", error);
+    console.error("Error processing dialogue request:", error);
     return NextResponse.json(
-      { error: "Failed to generate speech" },
+      { error: "Failed to process dialogue request" },
       { status: 500 }
     );
   }
