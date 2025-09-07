@@ -24,3 +24,22 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Subtle elevated-glass surfaces and animations */
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(6px) scale(0.98); filter: blur(6px); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 420ms ease-out both;
+}
+
+@keyframes gentle-pulse {
+  0% { opacity: 0.7; transform: scale(1); }
+  100% { opacity: 0.95; transform: scale(1.05); }
+}
+
+.glow-pulse {
+  animation: gentle-pulse 6s ease-in-out infinite alternate;
+}

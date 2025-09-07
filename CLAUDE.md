@@ -29,9 +29,9 @@ The application follows a three-stage pipeline:
 - Uses two predefined voices: Blondie and Bradford from ElevenLabs
 
 **API Routes (`src/app/api/`)**
-- `/api/scrape` - Firecrawl integration for web content extraction
-- `/api/generate-podcast` - OpenAI integration for conversation generation using structured output with Zod schemas
-- `/api/text-to-speech` - ElevenLabs Text-to-Dialogue API integration
+- `/api/scrape` - Firecrawl integration for web content extraction (markdown format, main content only)
+- `/api/generate-podcast` - OpenAI integration for conversation generation using streaming structured output
+- `/api/text-to-speech` - ElevenLabs Text-to-Dialogue API integration with dialogue creation
 
 **Server Actions (`src/actions/dialogue.ts`)**
 - Handles ElevenLabs dialogue creation with proper error handling
@@ -51,8 +51,9 @@ The application follows a three-stage pipeline:
 
 **OpenAI Integration:**
 - Model: `gpt-5-mini` via `@ai-sdk/openai`
-- Uses `generateObject` with Zod schema for structured conversation output
+- Uses `streamObject` with Zod schema for structured conversation output with streaming support
 - Schema enforces Speaker1/Speaker2 pattern with natural speech annotations
+- Conversation generation is streamed in real-time to the frontend
 
 **Conversation Schema:**
 ```typescript
@@ -63,6 +64,12 @@ conversation: z.array(
   })
 )
 ```
+
+**Conversation Style:**
+- Optimized for dynamic, natural conversations with interruptions and emotional reactions
+- Uses em dashes (—) for mid-sentence interruptions and overlapping dialogue
+- Character limit: under 2500 characters total to fit ElevenLabs API constraints
+- Aims for 8-12 short, punchy exchanges focusing on most interesting content aspects
 
 ### Environment Variables
 
@@ -85,4 +92,11 @@ Two hardcoded ElevenLabs voices are used:
 - Speaker2: Bradford (`NNl6r8mD7vthiJatiJt1`)
 
 The application maps Speaker1 to the first voice and Speaker2 to the second voice for consistent character assignment in generated podcasts.
+
+### Technical Notes
+
+- ElevenLabs dialogue generation has a 3000-character limit; conversations are optimized to stay under 2500 characters
+- The application uses streaming for real-time conversation generation from OpenAI
+- Firecrawl extracts only main content in markdown format for cleaner podcast input
+- Error handling follows functional Result pattern throughout the codebase
 - Never start the dev server yourself
