@@ -7,8 +7,13 @@ export async function POST(request: NextRequest) {
     const body: CreateDialogueRequest = await request.json();
 
     if (!body.inputs || body.inputs.length === 0) {
-      return NextResponse.json({ error: "Dialogue inputs are required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Dialogue inputs are required" },
+        { status: 400 }
+      );
     }
+
+    console.log("body", body.inputs);
 
     // Validate each dialogue input
     for (const input of body.inputs) {
@@ -24,10 +29,7 @@ export async function POST(request: NextRequest) {
 
     if (!result.ok) {
       console.error("Error generating dialogue:", result.error);
-      return NextResponse.json(
-        { error: result.error },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: result.error }, { status: 500 });
     }
 
     return NextResponse.json({

@@ -1,6 +1,6 @@
 'use server';
 
-import { getElevenLabsClient, handleError, streamToBase64 } from '@/utils/elevenlabs';
+import { getElevenLabsClient, handleError, streamToBase64 } from '@/app/actions/utils';
 import { Err, Ok, Result } from '@/types';
 
 export interface DialogueInput {

@@ -85,3 +85,4 @@ Two hardcoded ElevenLabs voices are used:
 - Speaker2: Bradford (`NNl6r8mD7vthiJatiJt1`)
 
 The application maps Speaker1 to the first voice and Speaker2 to the second voice for consistent character assignment in generated podcasts.
+- Never start the dev server yourself
