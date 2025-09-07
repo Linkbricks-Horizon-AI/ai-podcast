@@ -4,68 +4,95 @@ import { useState } from 'react';
 import { DialogueInput } from '@/types';
 
 export default function Home() {
-  const [dialogueInputs, setDialogueInputs] = useState<DialogueInput[]>([
-    { text: '', voiceId: 'exsUS4vynmxd379XN4yO' },
-    { text: '', voiceId: 'NNl6r8mD7vthiJatiJt1' },
-  ]);
+  const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [conversation, setConversation] = useState<Array<{speaker: string; text: string}> | null>(null);
+  const [scrapedContent, setScrapedContent] = useState<{content: string; title: string} | null>(null);
 
   const voices = [
     { id: 'exsUS4vynmxd379XN4yO', name: 'Blondie' },
     { id: 'NNl6r8mD7vthiJatiJt1', name: 'Bradford' },
   ];
 
-  const addDialogueInput = () => {
-    setDialogueInputs([...dialogueInputs, { text: '', voiceId: 'exsUS4vynmxd379XN4yO' }]);
-  };
-
-  const removeDialogueInput = (index: number) => {
-    if (dialogueInputs.length > 1) {
-      setDialogueInputs(dialogueInputs.filter((_, i) => i !== index));
-    }
-  };
-
-  const updateDialogueInput = (index: number, field: keyof DialogueInput, value: string) => {
-    const updated = [...dialogueInputs];
-    updated[index] = { ...updated[index], [field]: value };
-    setDialogueInputs(updated);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const validInputs = dialogueInputs.filter(input => input.text.trim());
-    if (validInputs.length === 0) return;
+    if (!url.trim()) return;
 
     setIsLoading(true);
     setAudioUrl(null);
+    setConversation(null);
+    setScrapedContent(null);
     
     try {
-      const response = await fetch('/api/text-to-speech', {
+      // Step 1: Scrape the URL
+      const scrapeResponse = await fetch('/api/scrape', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ inputs: validInputs }),
+        body: JSON.stringify({ url }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
+      if (!scrapeResponse.ok) {
+        const errorData = await scrapeResponse.json();
+        throw new Error(errorData.error || 'Failed to scrape URL');
+      }
+
+      const scrapeData = await scrapeResponse.json();
+      setScrapedContent(scrapeData);
+
+      // Step 2: Generate podcast conversation
+      const podcastResponse = await fetch('/api/generate-podcast', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          content: scrapeData.content, 
+          title: scrapeData.title 
+        }),
+      });
+
+      if (!podcastResponse.ok) {
+        const errorData = await podcastResponse.json();
+        throw new Error(errorData.error || 'Failed to generate podcast');
+      }
+
+      const podcastData = await podcastResponse.json();
+      setConversation(podcastData.conversation);
+
+      // Step 3: Convert to audio
+      const dialogueInputs: DialogueInput[] = podcastData.conversation.map((item: any) => ({
+        text: item.text,
+        voiceId: item.speaker === 'Speaker1' ? voices[0].id : voices[1].id
+      }));
+
+      const audioResponse = await fetch('/api/text-to-speech', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ inputs: dialogueInputs }),
+      });
+
+      if (!audioResponse.ok) {
+        const errorData = await audioResponse.json();
         throw new Error(errorData.error || 'Failed to generate audio');
       }
 
-      const data = await response.json();
+      const audioData = await audioResponse.json();
       
       // Revoke previous audio URL to free memory
       if (audioUrl) {
         URL.revokeObjectURL(audioUrl);
       }
       
-      setAudioUrl(data.audioBase64);
+      setAudioUrl(audioData.audioBase64);
     } catch (error) {
-      console.error('Error generating audio:', error);
-      alert('Error generating audio. Please try again.');
+      console.error('Error generating podcast:', error);
+      alert(`Error: ${error instanceof Error ? error.message : 'Something went wrong'}`);
     } finally {
       setIsLoading(false);
     }
@@ -73,6 +100,10 @@ export default function Home() {
 
   const getVoiceName = (voiceId: string) => {
     return voices.find(v => v.id === voiceId)?.name || 'Unknown';
+  };
+
+  const getSpeakerName = (speaker: string) => {
+    return speaker === 'Speaker1' ? voices[0].name : voices[1].name;
   };
 
   return (
@@ -84,84 +115,74 @@ export default function Home() {
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Podcast Segments
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                Website to Podcast
               </h2>
-              <button
-                type="button"
-                onClick={addDialogueInput}
-                disabled={isLoading}
-                className="bg-green-600 text-white px-3 py-1 rounded-md font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm"
-              >
-                + Add Segment
-              </button>
-            </div>
-
-            {dialogueInputs.map((input, index) => (
-              <div key={index} className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium text-gray-700 dark:text-gray-300">
-                    Segment {index + 1} - {getVoiceName(input.voiceId)}
-                  </h3>
-                  {dialogueInputs.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeDialogueInput(index)}
-                      disabled={isLoading}
-                      className="text-red-600 hover:text-red-800 disabled:text-gray-400 text-sm font-medium"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Speaker:
-                  </label>
-                  <select
-                    value={input.voiceId}
-                    onChange={(e) => updateDialogueInput(index, 'voiceId', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    disabled={isLoading}
-                  >
-                    {voices.map((voice) => (
-                      <option key={voice.id} value={voice.id}>
-                        {voice.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Text:
-                  </label>
-                  <textarea
-                    value={input.text}
-                    onChange={(e) => updateDialogueInput(index, 'text', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    rows={2}
-                    placeholder={`Enter text for ${getVoiceName(input.voiceId)}...`}
-                    disabled={isLoading}
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Enter a URL to convert to podcast:
+                </label>
+                <input
+                  type="url"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  placeholder="https://example.com/article"
+                  disabled={isLoading}
+                  required
+                />
               </div>
-            ))}
+            </div>
           </div>
           
           <button
             type="submit"
-            disabled={isLoading || dialogueInputs.every(input => !input.text.trim())}
+            disabled={isLoading || !url.trim()}
             className="w-full bg-blue-600 text-white py-3 px-4 rounded-md font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
           >
             {isLoading && (
               <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
             )}
-            {isLoading ? 'Generating Podcast...' : 'Generate Podcast'}
+            {isLoading ? 'Generating Podcast...' : 'Generate Podcast from URL'}
           </button>
         </form>
+
+        {scrapedContent && (
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              Scraped Content:
+            </h2>
+            <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+              <h3 className="font-medium text-gray-900 dark:text-white mb-2">
+                {scrapedContent.title}
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3">
+                {scrapedContent.content.substring(0, 200)}...
+              </p>
+            </div>
+          </div>
+        )}
+
+        {conversation && (
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              Generated Conversation:
+            </h2>
+            <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg space-y-3 max-h-96 overflow-y-auto">
+              {conversation.map((item, index) => (
+                <div key={index} className="flex gap-3">
+                  <div className="font-semibold text-blue-600 dark:text-blue-400 min-w-0 flex-shrink-0">
+                    {getSpeakerName(item.speaker)}:
+                  </div>
+                  <div className="text-gray-900 dark:text-white">
+                    {item.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {audioUrl && (
           <div className="mt-8">

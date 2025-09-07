@@ -1,0 +1,65 @@
+import { NextRequest, NextResponse } from "next/server";
+import { generateObject } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { z } from "zod";
+
+const podcastSchema = z.object({
+  conversation: z
+    .array(
+      z.object({
+        speaker: z.enum(["Speaker1", "Speaker2"]),
+        text: z
+          .string()
+          .describe(
+            "The text spoken by this speaker, including natural speech patterns and nuances like [laughs], [pauses], [excited], etc."
+          ),
+      })
+    )
+    .describe(
+      "A natural podcast conversation between two speakers discussing the content"
+    ),
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    const { content, title } = await req.json();
+
+    if (!content) {
+      return NextResponse.json(
+        { error: "Content is required" },
+        { status: 400 }
+      );
+    }
+
+    const model = openai("gpt-5-mini");
+
+    const result = await generateObject({
+      model,
+      schema: podcastSchema,
+      prompt: `Create a natural, engaging podcast conversation between two speakers about the following content. 
+
+Title: ${title || "Article"}
+
+Content: ${content}
+
+Guidelines:
+- Create a natural dialogue between Speaker1 and Speaker2
+- Include natural speech patterns and reactions like [laughs], [pauses], [excited], [surprised], [thoughtful], etc.
+- Make it conversational and engaging
+- Each speaker should contribute meaningfully to the discussion
+- Keep individual segments reasonably short (1-3 sentences each)
+- Include transitions, questions, and natural flow
+- Total conversation should be engaging but not too long (aim for 10-15 exchanges)`,
+    });
+
+    return NextResponse.json({
+      conversation: result.object.conversation,
+    });
+  } catch (error) {
+    console.error("Error generating podcast:", error);
+    return NextResponse.json(
+      { error: "Failed to generate podcast conversation" },
+      { status: 500 }
+    );
+  }
+}
