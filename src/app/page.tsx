@@ -6,8 +6,10 @@ import { DialogueInput } from '@/types';
 export default function Home() {
   const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [conversation, setConversation] = useState<Array<{speaker: string; text: string}> | null>(null);
+  const [isConversationComplete, setIsConversationComplete] = useState(false);
   const [scrapedContent, setScrapedContent] = useState<{content: string; title: string} | null>(null);
 
   const voices = [
@@ -23,6 +25,7 @@ export default function Home() {
     setIsLoading(true);
     setAudioUrl(null);
     setConversation(null);
+    setIsConversationComplete(false);
     setScrapedContent(null);
     
     try {
@@ -43,7 +46,7 @@ export default function Home() {
       const scrapeData = await scrapeResponse.json();
       setScrapedContent(scrapeData);
 
-      // Step 2: Generate podcast conversation
+      // Step 2: Generate podcast conversation with streaming
       const podcastResponse = await fetch('/api/generate-podcast', {
         method: 'POST',
         headers: {
@@ -60,11 +63,63 @@ export default function Home() {
         throw new Error(errorData.error || 'Failed to generate podcast');
       }
 
-      const podcastData = await podcastResponse.json();
-      setConversation(podcastData.conversation);
+      // Handle streaming response
+      const reader = podcastResponse.body?.getReader();
+      const decoder = new TextDecoder();
+      
+      if (!reader) {
+        throw new Error('No response stream available');
+      }
 
-      // Step 3: Convert to audio
-      const dialogueInputs: DialogueInput[] = podcastData.conversation.map((item: any) => ({
+      let buffer = '';
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) break;
+        
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        
+        // Keep the last incomplete line in the buffer
+        buffer = lines.pop() || '';
+        
+        // Process complete lines
+        for (const line of lines) {
+          if (line.trim()) {
+            try {
+              const update = JSON.parse(line);
+              
+              if (update.type === 'partial' && update.data?.conversation) {
+                setConversation(update.data.conversation);
+              } else if (update.type === 'complete' && update.data?.conversation) {
+                setConversation(update.data.conversation);
+                setIsConversationComplete(true);
+              } else if (update.type === 'error') {
+                throw new Error(update.error || 'Streaming error');
+              }
+            } catch (parseError) {
+              console.error('Error parsing streaming response:', parseError);
+            }
+          }
+        }
+      }
+      
+    } catch (error) {
+      console.error('Error generating podcast:', error);
+      alert(`Error: ${error instanceof Error ? error.message : 'Something went wrong'}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGenerateAudio = async () => {
+    if (!conversation || !isConversationComplete) return;
+
+    setIsGeneratingAudio(true);
+    
+    try {
+      const dialogueInputs: DialogueInput[] = conversation.map((item: any) => ({
         text: item.text,
         voiceId: item.speaker === 'Speaker1' ? voices[0].id : voices[1].id
       }));
@@ -91,10 +146,10 @@ export default function Home() {
       
       setAudioUrl(audioData.audioBase64);
     } catch (error) {
-      console.error('Error generating podcast:', error);
+      console.error('Error generating audio:', error);
       alert(`Error: ${error instanceof Error ? error.message : 'Something went wrong'}`);
     } finally {
-      setIsLoading(false);
+      setIsGeneratingAudio(false);
     }
   };
 
@@ -144,7 +199,7 @@ export default function Home() {
             {isLoading && (
               <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
             )}
-            {isLoading ? 'Generating Podcast...' : 'Generate Podcast from URL'}
+            {isLoading ? 'Generating Conversation...' : 'Generate Conversation from URL'}
           </button>
         </form>
 
@@ -168,6 +223,11 @@ export default function Home() {
           <div className="mt-8">
             <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
               Generated Conversation:
+              {!isConversationComplete && (
+                <span className="ml-2 text-sm text-blue-600 dark:text-blue-400">
+                  (Streaming...)
+                </span>
+              )}
             </h2>
             <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg space-y-3 max-h-96 overflow-y-auto">
               {conversation.map((item, index) => (
@@ -181,6 +241,21 @@ export default function Home() {
                 </div>
               ))}
             </div>
+            
+            {isConversationComplete && (
+              <div className="mt-4">
+                <button
+                  onClick={handleGenerateAudio}
+                  disabled={isGeneratingAudio}
+                  className="w-full bg-green-600 text-white py-3 px-4 rounded-md font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                >
+                  {isGeneratingAudio && (
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                  )}
+                  {isGeneratingAudio ? 'Generating Audio...' : 'Generate Audio'}
+                </button>
+              </div>
+            )}
           </div>
         )}
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateObject } from "ai";
+import { streamObject } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { z } from "zod";
 
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
     const model = openai("gpt-5-mini");
 
-    const result = await generateObject({
+    const result = streamObject({
       model,
       schema: podcastSchema,
       prompt: `Create a natural, engaging podcast conversation between two speakers about the following content. 
@@ -52,8 +52,47 @@ Guidelines:
 - Total conversation should be engaging but not too long (aim for 10-15 exchanges)`,
     });
 
-    return NextResponse.json({
-      conversation: result.object.conversation,
+    // Create a readable stream to send partial objects to client
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const partialObject of result.partialObjectStream) {
+            // Send each partial update as JSON
+            const chunk = JSON.stringify({ 
+              type: 'partial',
+              data: partialObject 
+            }) + '\n';
+            
+            controller.enqueue(new TextEncoder().encode(chunk));
+          }
+
+          // Send final complete object
+          const finalObject = await result.object;
+          const finalChunk = JSON.stringify({ 
+            type: 'complete',
+            data: finalObject 
+          }) + '\n';
+          
+          controller.enqueue(new TextEncoder().encode(finalChunk));
+          controller.close();
+        } catch (error) {
+          console.error("Streaming error:", error);
+          const errorChunk = JSON.stringify({ 
+            type: 'error',
+            error: 'Failed to generate podcast conversation' 
+          }) + '\n';
+          
+          controller.enqueue(new TextEncoder().encode(errorChunk));
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Transfer-Encoding': 'chunked',
+      },
     });
   } catch (error) {
     console.error("Error generating podcast:", error);
