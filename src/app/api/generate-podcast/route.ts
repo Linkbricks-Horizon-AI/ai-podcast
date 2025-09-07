@@ -36,20 +36,47 @@ export async function POST(req: NextRequest) {
     const result = streamObject({
       model,
       schema: podcastSchema,
-      prompt: `Create a natural, engaging podcast conversation between two speakers about the following content. 
+      prompt: `Create a highly dynamic, natural podcast conversation between two speakers about the following content. Make it feel like real people having an authentic conversation with interruptions, overlaps, and organic flow.
 
 Title: ${title || "Article"}
 
 Content: ${content}
 
-Guidelines:
-- Create a natural dialogue between Speaker1 and Speaker2
-- Include natural speech patterns and reactions like [laughs], [pauses], [excited], [surprised], [thoughtful], etc.
-- Make it conversational and engaging
-- Each speaker should contribute meaningfully to the discussion
-- Keep individual segments reasonably short (1-3 sentences each)
-- Include transitions, questions, and natural flow
-- Total conversation should be engaging but not too long (aim for 10-15 exchanges)`,
+CRITICAL: Make this conversation feel REAL and DYNAMIC with these specific patterns:
+
+INTERRUPTION PATTERNS:
+- Use "—" (em dash) to show mid-sentence interruptions: "So I was thinking we could—" / "—test our new timing features?"
+- Show speakers cutting each other off naturally
+- Include overlapping thoughts and competing to speak
+
+EMOTIONAL REACTIONS:
+- Frequent emotional annotations: [laughs], [chuckles], [excited], [surprised], [skeptical], [thoughtful], [confused], [amazed]
+- Show genuine reactions to what the other person says
+- Include moments of realization, surprise, disagreement
+
+CONVERSATIONAL FLOW:
+- Speakers should interrupt, agree enthusiastically, or disagree
+- Include side tangents and references to other topics
+- Show speakers building on each other's ideas or challenging them
+- Use casual language, contractions, and natural speech patterns
+- Include filler words and natural hesitations occasionally
+
+DYNAMIC EXCHANGES:
+- Mix very short responses ("Wait, what?", "Exactly!", "Oh my god!") with longer explanations
+- Show speakers getting excited and talking over each other
+- Include moments where they both try to talk at the same time
+- Reference shared knowledge or experiences they might have
+
+EXAMPLE STYLE (based on your examples):
+- "So I was thinking we could—"
+- "—know what you were thinking? Lucky guess! Sorry, go ahead."
+- "Okay, so if we both try to talk at the same time—"
+- "—we'll probably crash the system!"
+- "[LAUGHS] Come on man, PLEASE! I promise you'll love this one."
+
+Make it feel like two friends who are genuinely engaged, sometimes interrupt each other, and have authentic reactions. 
+
+IMPORTANT: Keep the TOTAL conversation under 2500 characters to fit within API limits. Aim for 8-12 short, punchy exchanges that pack maximum impact. Focus on the most interesting or surprising aspects of the content.`,
     });
 
     // Create a readable stream to send partial objects to client
