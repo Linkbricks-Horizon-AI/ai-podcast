@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@elevenlabs/elevenlabs-js": "^2.14.0",
+    "@mendable/firecrawl-js": "^4.3.4",
+    "ai": "^5.0.34",
     "next": "15.5.2",
     "react": "19.1.0",
     "react-dom": "19.1.0"
