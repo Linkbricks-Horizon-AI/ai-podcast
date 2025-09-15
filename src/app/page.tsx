@@ -16,6 +16,8 @@ export default function Home() {
   const [conversationTurns, setConversationTurns] = useState(0);
   const prevTurnsRef = useRef(0);
   const [newStartIndex, setNewStartIndex] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const voices = [
     { id: 'exsUS4vynmxd379XN4yO', name: 'Blondie' },
@@ -211,10 +213,10 @@ export default function Home() {
       }
       return inProgress.label;
     }
-    if (audioUrl) return 'Podcast ready';
+    if (audioUrl) return isPlaying ? 'Playing podcast' : 'Podcast ready';
     if (isLoading) return 'Starting…';
     return 'Awaiting URL';
-  }, [steps, audioUrl, isLoading, conversationTurns]);
+  }, [steps, audioUrl, isLoading, conversationTurns, isPlaying]);
 
   const nextSteps = useMemo(() => {
     const firstPendingIdx = steps.findIndex((s) => s.status !== 'complete');
@@ -255,6 +257,35 @@ export default function Home() {
         <text x="50%" y="54%" textAnchor="middle" fontSize="18" fontWeight="700" fill="white" fontFamily="system-ui, -apple-system, Segoe UI, Roboto">{initial}</text>
       </svg>
     );
+  };
+
+  // Audio controls logic
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el) return;
+    // When a new audio URL arrives, ensure we reset play state and load it
+    setIsPlaying(false);
+    try { el.pause(); } catch {}
+    el.currentTime = 0;
+    // src bound in JSX; calling load helps reset metadata
+    try { el.load(); } catch {}
+  }, [audioUrl]);
+
+  const togglePlay = async () => {
+    const el = audioRef.current;
+    if (!el) return;
+    if (!audioUrl) return;
+    try {
+      if (el.paused) {
+        await el.play();
+        setIsPlaying(true);
+      } else {
+        el.pause();
+        setIsPlaying(false);
+      }
+    } catch (e) {
+      console.error('Audio play/pause error', e);
+    }
   };
 
   return (
@@ -390,10 +421,32 @@ export default function Home() {
                 )}
               </div>
               {audioUrl ? (
-                <audio controls className="w-full">
-                  <source src={audioUrl} type="audio/mpeg" />
-                  Your browser does not support the audio element.
-                </audio>
+                <div className="flex items-center justify-center py-2">
+                  <button
+                    onClick={togglePlay}
+                    className={`relative inline-flex items-center justify-center h-16 w-16 rounded-full text-white shadow-xl transition transform hover:scale-[1.03] active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                      isPlaying ? 'bg-gradient-to-br from-indigo-600 to-fuchsia-600' : 'bg-gradient-to-br from-indigo-600 to-fuchsia-600'
+                    }`}
+                    aria-label={isPlaying ? 'Pause audio' : 'Play audio'}
+                    title={isPlaying ? 'Pause' : 'Play'}
+                  >
+                    {!isPlaying && (
+                      <span className="absolute inset-0 rounded-full bg-indigo-500/30 blur-md pulse-ring" aria-hidden />
+                    )}
+                    <span className="relative text-2xl leading-none">
+                      {isPlaying ? '❚❚' : '▶'}
+                    </span>
+                  </button>
+                  <audio
+                    ref={audioRef}
+                    src={audioUrl || undefined}
+                    preload="metadata"
+                    className="hidden"
+                    onPlay={() => setIsPlaying(true)}
+                    onPause={() => setIsPlaying(false)}
+                    onEnded={() => setIsPlaying(false)}
+                  />
+                </div>
               ) : (
                 <div className="w-full h-24 bg-white/40 dark:bg-white/5 border border-white/30 dark:border-white/10 rounded flex items-center justify-center text-sm text-gray-500 dark:text-gray-400 backdrop-blur">
                   {isGeneratingAudio ? (

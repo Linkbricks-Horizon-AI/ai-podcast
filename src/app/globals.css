@@ -43,3 +43,14 @@ body {
 .glow-pulse {
   animation: gentle-pulse 6s ease-in-out infinite alternate;
 }
+
+/* Pulsing ring for play button */
+@keyframes pulse-ring {
+  0% { transform: scale(0.9); opacity: 0.35; }
+  70% { transform: scale(1.4); opacity: 0; }
+  100% { opacity: 0; }
+}
+
+.pulse-ring {
+  animation: pulse-ring 1.8s ease-out infinite;
+}
