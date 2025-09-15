@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DialogueInput } from '@/types';
 
 export default function Home() {
@@ -19,10 +19,10 @@ export default function Home() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const voices = [
+  const voices = useMemo(() => [
     { id: 'exsUS4vynmxd379XN4yO', name: 'Blondie' },
     { id: 'NNl6r8mD7vthiJatiJt1', name: 'Bradford' },
-  ];
+  ], []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,13 +124,13 @@ export default function Home() {
     }
   };
 
-  const handleGenerateAudio = async () => {
+  const handleGenerateAudio = useCallback(async () => {
     if (!conversation || !isConversationComplete) return;
 
     setIsGeneratingAudio(true);
     
     try {
-      const dialogueInputs: DialogueInput[] = conversation.map((item: any) => ({
+      const dialogueInputs: DialogueInput[] = conversation.map((item: { speaker: string; text: string }) => ({
         text: item.text,
         voiceId: item.speaker === 'Speaker1' ? voices[0].id : voices[1].id
       }));
@@ -162,11 +162,7 @@ export default function Home() {
     } finally {
       setIsGeneratingAudio(false);
     }
-  };
-
-  const getVoiceName = (voiceId: string) => {
-    return voices.find(v => v.id === voiceId)?.name || 'Unknown';
-  };
+  }, [conversation, isConversationComplete, voices, audioUrl]);
 
   const getSpeakerName = (speaker: string) => {
     return speaker === 'Speaker1' ? voices[0].name : voices[1].name;
@@ -179,7 +175,7 @@ export default function Home() {
       // Fire and forget; internal state handles progress and errors
       void handleGenerateAudio();
     }
-  }, [isConversationComplete, conversation, isGeneratingAudio, audioUrl, hasRequestedAudio]);
+  }, [isConversationComplete, conversation, isGeneratingAudio, audioUrl, hasRequestedAudio, handleGenerateAudio]);
 
   // Agentic progress steps
   type StepStatus = 'pending' | 'in_progress' | 'complete';
@@ -285,6 +281,20 @@ export default function Home() {
       }
     } catch (e) {
       console.error('Audio play/pause error', e);
+    }
+  };
+
+  const restartAudio = () => {
+    const el = audioRef.current;
+    if (!el) return;
+    if (!audioUrl) return;
+    try {
+      el.currentTime = 0;
+      if (!el.paused) {
+        el.play();
+      }
+    } catch (e) {
+      console.error('Audio restart error', e);
     }
   };
 
@@ -421,7 +431,7 @@ export default function Home() {
                 )}
               </div>
               {audioUrl ? (
-                <div className="flex items-center justify-center py-2">
+                <div className="flex items-center justify-center gap-3 py-2">
                   <button
                     onClick={togglePlay}
                     className={`relative inline-flex items-center justify-center h-16 w-16 rounded-full text-white shadow-xl transition transform hover:scale-[1.03] active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
@@ -436,6 +446,14 @@ export default function Home() {
                     <span className="relative text-2xl leading-none">
                       {isPlaying ? '❚❚' : '▶'}
                     </span>
+                  </button>
+                  <button
+                    onClick={restartAudio}
+                    className="inline-flex items-center justify-center h-12 w-12 rounded-full text-white bg-gradient-to-br from-gray-600 to-gray-700 shadow-lg transition transform hover:scale-[1.03] active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                    aria-label="Restart audio"
+                    title="Restart"
+                  >
+                    <span className="text-lg leading-none">↻</span>
                   </button>
                   <audio
                     ref={audioRef}
