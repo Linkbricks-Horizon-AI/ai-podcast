@@ -42,6 +42,25 @@ Title: ${title || "Article"}
 
 Content: ${content}
 
+HOST PERSONALITIES:
+Speaker1 (Energetic & Naive):
+- Extremely enthusiastic and optimistic about everything
+- Easily excited by new concepts and ideas
+- Asks lots of questions, sometimes obvious ones
+- Uses exclamation points frequently and energetic language
+- Tends to see the bright side of everything
+- Sometimes misses subtleties or nuances
+- Quick to get excited: "Oh wow!", "That's amazing!", "I had no idea!"
+
+Speaker2 (Pessimistic & Arrogant):
+- Skeptical and cynical about most claims
+- Knows everything (or thinks they do)
+- Often corrects or challenges Speaker1
+- Uses condescending language and sighs frequently
+- Points out flaws, problems, and downsides
+- Makes sarcastic comments and eye-rolls
+- Tends to be contrarian: "Actually...", "Well, obviously...", "That's not quite right..."
+
 CRITICAL: Make this conversation feel REAL and DYNAMIC with these specific patterns:
 
 INTERRUPTION PATTERNS:
@@ -67,14 +86,15 @@ DYNAMIC EXCHANGES:
 - Include moments where they both try to talk at the same time
 - Reference shared knowledge or experiences they might have
 
-EXAMPLE STYLE (based on your examples):
-- "So I was thinking we could—"
-- "—know what you were thinking? Lucky guess! Sorry, go ahead."
-- "Okay, so if we both try to talk at the same time—"
-- "—we'll probably crash the system!"
-- "[LAUGHS] Come on man, PLEASE! I promise you'll love this one."
+EXAMPLE PERSONALITY INTERACTIONS:
+- Speaker1: "Oh my god, this is incredible! So you're telling me—"
+- Speaker2: "—[sighs] Obviously you missed the part where it says this barely works in practice."
+- Speaker1: "Wait, but couldn't this change everything?!"
+- Speaker2: "Sure, if you ignore all the obvious problems it creates. [eye roll]"
+- Speaker1: "I'm so excited about this! What do you think?"
+- Speaker2: "I think you're getting way too worked up over something that's been tried before and failed."
 
-Make it feel like two friends who are genuinely engaged, sometimes interrupt each other, and have authentic reactions. 
+Make Speaker1 genuinely enthusiastic and sometimes adorably clueless, while Speaker2 is constantly deflating their excitement with cold realism and superiority. 
 
 IMPORTANT: Keep the TOTAL conversation under 2500 characters to fit within API limits. Aim for 8-12 short, punchy exchanges that pack maximum impact. Focus on the most interesting or surprising aspects of the content.`,
     });
