@@ -1,36 +1,187 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HORIZON-AI POD CAST GENERATOR 🎙️
 
-## Getting Started
+AI 기반 팟캐스트 대화 생성기 - URL, 텍스트, 문서를 자연스러운 한국어 팟캐스트 대화로 변환합니다.
 
-First, run the development server:
+## 🌟 주요 기능
 
+- **다양한 입력 소스 지원**
+  - URL 스크래핑 (웹 기사, 블로그 포스트)
+  - 텍스트 직접 입력
+  - 파일 업로드 (이미지, PDF, DOCX, XLSX, PPTX, CSV, TXT, MD)
+  
+- **한국어 팟캐스트 생성**
+  - GPT-4o를 활용한 자연스러운 한국어 대화 생성
+  - 두 명의 화자 (활기찬 Speaker1, 비관적인 Speaker2)
+  - 실시간 스트리밍 대화 표시
+  
+- **음성 합성**
+  - ElevenLabs API를 통한 고품질 TTS
+  - 화자별 다른 목소리 적용
+  - 즉시 재생 가능한 오디오 파일 생성
+
+## 🛠 기술 스택
+
+- **Framework**: Next.js 15.5.2 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **AI Services**:
+  - OpenAI GPT-4o (대화 생성, 이미지 분석)
+  - ElevenLabs (TTS)
+  - Firecrawl (웹 스크래핑)
+- **Document Parsing**:
+  - pdf-parse (PDF)
+  - mammoth (DOCX)
+  - xlsx (Excel)
+  - jszip & xml2js (PPTX)
+
+## 📋 필수 요구사항
+
+- Node.js 18.0.0 이상
+- npm 또는 yarn
+
+## 🚀 설치 및 실행
+
+### 1. 저장소 클론
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/your-username/ai-podcast.git
+cd ai-podcast
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. 의존성 설치
+```bash
+npm install
+# 또는
+yarn install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. 환경 변수 설정
+`.env` 파일을 생성하고 다음 API 키를 설정:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+# OpenAI API
+OPENAI_API_KEY=your_openai_api_key
 
-## Learn More
+# ElevenLabs API
+ELEVENLABS_API_KEY=your_elevenlabs_api_key
 
-To learn more about Next.js, take a look at the following resources:
+# Firecrawl API (웹 스크래핑)
+FIRECRAWL_API_KEY=your_firecrawl_api_key
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# 파일 업로드 설정 (MB 단위)
+MAX_UPLOAD_FILE_SIZE=20
+NEXT_PUBLIC_MAX_UPLOAD_FILE_SIZE=20
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 4. 개발 서버 실행
+```bash
+npm run dev
+# 또는
+yarn dev
+```
 
-## Deploy on Vercel
+http://localhost:3000에서 애플리케이션을 확인할 수 있습니다.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 5. 프로덕션 빌드
+```bash
+npm run build
+npm run start
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🌐 Render.com 배포 가이드
+
+### 1. Render 계정 및 프로젝트 설정
+1. [Render.com](https://render.com)에서 계정 생성
+2. GitHub 저장소 연결
+
+### 2. Web Service 생성
+1. Dashboard에서 "New +" → "Web Service" 선택
+2. GitHub 저장소 선택
+3. 서비스 설정:
+   - **Name**: horizon-ai-podcast-generator
+   - **Environment**: Node
+   - **Build Command**: `npm install && npm run build`
+   - **Start Command**: `npm run start`
+   - **Instance Type**: Free 또는 원하는 플랜 선택
+
+### 3. 환경 변수 설정
+Render Dashboard → Environment에서 다음 환경 변수 추가:
+
+```
+OPENAI_API_KEY=your_openai_api_key
+ELEVENLABS_API_KEY=your_elevenlabs_api_key
+FIRECRAWL_API_KEY=your_firecrawl_api_key
+MAX_UPLOAD_FILE_SIZE=20
+NEXT_PUBLIC_MAX_UPLOAD_FILE_SIZE=20
+NODE_ENV=production
+```
+
+### 4. 배포
+1. "Create Web Service" 클릭
+2. 자동으로 빌드 및 배포 시작
+3. 배포 완료 후 제공된 URL로 접속
+
+### 5. 자동 배포 설정
+- GitHub main 브랜치에 push하면 자동으로 재배포됨
+
+## 📝 사용 방법
+
+### URL 입력
+1. "URL to convert" 라디오 버튼 선택
+2. 웹 페이지 URL 입력 (뉴스 기사, 블로그 등)
+3. "Generate Conversation" 클릭
+
+### 텍스트 입력
+1. "Text to convert" 라디오 버튼 선택
+2. 텍스트 직접 입력
+3. "Generate Conversation" 클릭
+
+### 파일 업로드
+1. "File to convert" 라디오 버튼 선택
+2. 파일 드래그 앤 드롭 또는 클릭하여 선택
+3. "Generate Conversation" 클릭
+
+### 지원 파일 형식
+- **이미지**: JPG, PNG, GIF, WEBP
+- **문서**: PDF, DOCX, PPTX, XLSX, CSV, TXT, MD
+- **최대 크기**: 20MB
+
+## 🎯 주요 기능 설명
+
+### 실시간 스트리밍
+대화가 생성되는 동안 실시간으로 화면에 표시됩니다.
+
+### 감정 표현
+대화에 [excited], [skeptical] 등의 감정 태그가 포함되어 더욱 생동감 있는 음성 생성이 가능합니다.
+
+### 화자 특성
+- **Speaker1 (Blondie)**: 활기차고 순진한 성격, 모든 것에 열정적
+- **Speaker2 (Bradford)**: 비관적이고 오만한 성격, 회의적인 시각
+
+## 🐛 문제 해결
+
+### 빌드 오류
+```bash
+# node_modules 재설치
+rm -rf node_modules package-lock.json
+npm install
+```
+
+### API 키 오류
+- 모든 환경 변수가 올바르게 설정되었는지 확인
+- API 키의 유효성 및 사용 한도 확인
+
+## 📄 라이센스
+
+MIT License
+
+## 🤝 기여
+
+기여를 환영합니다! Pull Request를 보내주세요.
+
+## 📧 문의
+
+문제가 있거나 제안사항이 있으면 Issues를 통해 알려주세요.
+
+---
+
+Made with ❤️ by HORIZON-AI Team

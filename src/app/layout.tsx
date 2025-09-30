@@ -13,8 +13,26 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Podcast Generator",
+  title: "HORIZON-AI POD CAST GENERATOR",
   description: "Generate AI-powered podcasts with multiple speakers using ElevenLabs AI voices",
+  manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/favicon-192x192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-icon-180x180.png', sizes: '180x180', type: 'image/png' },
+    ],
+    other: [
+      {
+        rel: 'icon',
+        url: '/favicon.ico',
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
