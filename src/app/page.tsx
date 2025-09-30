@@ -527,6 +527,28 @@ export default function Home() {
     }
   };
 
+  const downloadAudio = () => {
+    if (!audioUrl) return;
+    
+    try {
+      // Create a temporary link element
+      const link = document.createElement('a');
+      link.href = audioUrl;
+      
+      // Generate filename with current date/time
+      const now = new Date();
+      const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
+      link.download = `podcast-${timestamp}.mp3`;
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (e) {
+      console.error('Audio download error', e);
+    }
+  };
+
   return (
     <div className="relative font-sans min-h-screen p-6 lg:p-8 overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-pink-50 dark:from-slate-900 dark:via-slate-950 dark:to-black">
       {/* Glows */}
@@ -571,7 +593,7 @@ export default function Home() {
         </div>
 
         {/* Three-column workspace */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 lg:items-stretch">
           {/* Left: Source */}
           <div className="lg:col-span-3 rounded-xl border border-white/30 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-xl shadow-lg p-4 flex flex-col gap-4">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Source</h2>
@@ -732,7 +754,7 @@ export default function Home() {
           </div>
 
           {/* Middle: Conversation */}
-          <div className="lg:col-span-6 rounded-xl border border-white/30 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-xl shadow-lg p-4 flex flex-col self-stretch">
+          <div className="lg:col-span-6 rounded-xl border border-white/30 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-xl shadow-lg p-4 flex flex-col h-full">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Conversation</h2>
               {!isConversationComplete && conversation && (
@@ -762,7 +784,7 @@ export default function Home() {
           </div>
 
           {/* Right: Audio + Agent details */}
-          <div className="lg:col-span-3 flex flex-col gap-4">
+          <div className="lg:col-span-3 flex flex-col gap-4 h-full">
             <div className="rounded-xl border border-white/30 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-xl shadow-lg p-4">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Audio</h2>
               <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">
@@ -797,6 +819,16 @@ export default function Home() {
                     title="Restart"
                   >
                     <span className="text-lg leading-none">↻</span>
+                  </button>
+                  <button
+                    onClick={downloadAudio}
+                    className="inline-flex items-center justify-center h-12 w-12 rounded-full text-white bg-gradient-to-br from-green-600 to-green-700 shadow-lg transition transform hover:scale-[1.03] active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    aria-label="Download audio"
+                    title="Download MP3"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
                   </button>
                   <audio
                     ref={audioRef}
