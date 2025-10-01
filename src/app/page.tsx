@@ -22,11 +22,28 @@ export default function Home() {
   const [textInput, setTextInput] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string>('');
+  
+  // 음성 목록과 선택된 음성
+  const [voiceList, setVoiceList] = useState<{name: string; style: string; id: string; previewFile: string}[]>([]);
+  const [selectedVoice1, setSelectedVoice1] = useState('exsUS4vynmxd379XN4yO'); // Blondie default
+  const [selectedVoice2, setSelectedVoice2] = useState('NNl6r8mD7vthiJatiJt1'); // Bradford default
+  const [playingPreview, setPlayingPreview] = useState<string | null>(null);
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  // voices.json 로드
+  useEffect(() => {
+    fetch('/voices.json')
+      .then(res => res.json())
+      .then(data => {
+        setVoiceList(data);
+      })
+      .catch(err => console.error('Failed to load voices:', err));
+  }, []);
 
   const voices = useMemo(() => [
-    { id: 'exsUS4vynmxd379XN4yO', name: 'Blondie' },
-    { id: 'NNl6r8mD7vthiJatiJt1', name: 'Bradford' },
-  ], []);
+    { id: selectedVoice1, name: voiceList.find(v => v.id === selectedVoice1)?.name || 'Speaker1' },
+    { id: selectedVoice2, name: voiceList.find(v => v.id === selectedVoice2)?.name || 'Speaker2' },
+  ], [selectedVoice1, selectedVoice2, voiceList]);
 
   const maxFileSize = parseInt(process.env.NEXT_PUBLIC_MAX_UPLOAD_FILE_SIZE || '20'); // MB
 
@@ -549,6 +566,38 @@ export default function Home() {
     }
   };
 
+  // 음성 미리듣기 함수
+  const handlePreviewVoice = (voiceId: string) => {
+    if (playingPreview === voiceId) {
+      // 재생 중이면 중지
+      if (previewAudioRef.current) {
+        previewAudioRef.current.pause();
+        previewAudioRef.current.currentTime = 0;
+      }
+      setPlayingPreview(null);
+    } else {
+      // 새로운 미리듣기 재생
+      const voice = voiceList.find(v => v.id === voiceId);
+      if (!voice) return;
+
+      if (previewAudioRef.current) {
+        previewAudioRef.current.pause();
+      }
+
+      const audio = new Audio(`/voice-previews/${voice.previewFile}`);
+      audio.volume = 0.5;
+      audio.onended = () => setPlayingPreview(null);
+      audio.onpause = () => setPlayingPreview(null);
+      audio.play().catch(err => {
+        console.error('Failed to play preview:', err);
+        setPlayingPreview(null);
+      });
+
+      previewAudioRef.current = audio;
+      setPlayingPreview(voiceId);
+    }
+  };
+
   return (
     <div className="relative font-sans min-h-screen p-6 lg:p-8 overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-pink-50 dark:from-slate-900 dark:via-slate-950 dark:to-black">
       {/* Glows */}
@@ -855,13 +904,80 @@ export default function Home() {
             </div>
 
             <div className="rounded-xl border border-white/30 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-xl shadow-lg p-4">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Voices</h3>
-              <div className="text-xs text-gray-700 dark:text-gray-300 space-y-1">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Voices</h3>
+              <div className="space-y-3">
+                {/* Speaker 1 */}
                 <div>
-                  <span className="font-medium text-blue-600 dark:text-blue-400">Speaker 1:</span> {voices[0].name}
+                  <label className="text-xs font-medium text-blue-600 dark:text-blue-400 block mb-1">
+                    Speaker 1
+                  </label>
+                  <div className="flex gap-1">
+                    <select
+                      value={selectedVoice1}
+                      onChange={(e) => setSelectedVoice1(e.target.value)}
+                      className="flex-1 min-w-0 text-xs rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-1.5 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      {voiceList.map(voice => (
+                        <option key={voice.id} value={voice.id} title={`${voice.name} (${voice.style})`}>
+                          {voice.name.length > 20 ? voice.name.substring(0, 20) + '...' : voice.name}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => handlePreviewVoice(selectedVoice1)}
+                      className="flex-shrink-0 px-2 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors"
+                      title="미리듣기"
+                    >
+                      {playingPreview === selectedVoice1 ? (
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <rect x="6" y="4" width="4" height="16" strokeWidth="2" />
+                          <rect x="14" y="4" width="4" height="16" strokeWidth="2" />
+                        </svg>
+                      ) : (
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <polygon points="5 3 19 12 5 21 5 3" strokeWidth="2" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                 </div>
+
+                {/* Speaker 2 */}
                 <div>
-                  <span className="font-medium text-blue-600 dark:text-blue-400">Speaker 2:</span> {voices[1].name}
+                  <label className="text-xs font-medium text-blue-600 dark:text-blue-400 block mb-1">
+                    Speaker 2
+                  </label>
+                  <div className="flex gap-1">
+                    <select
+                      value={selectedVoice2}
+                      onChange={(e) => setSelectedVoice2(e.target.value)}
+                      className="flex-1 min-w-0 text-xs rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-1.5 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      {voiceList.map(voice => (
+                        <option key={voice.id} value={voice.id} title={`${voice.name} (${voice.style})`}>
+                          {voice.name.length > 20 ? voice.name.substring(0, 20) + '...' : voice.name}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => handlePreviewVoice(selectedVoice2)}
+                      className="flex-shrink-0 px-2 py-1.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white transition-colors"
+                      title="미리듣기"
+                    >
+                      {playingPreview === selectedVoice2 ? (
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <rect x="6" y="4" width="4" height="16" strokeWidth="2" />
+                          <rect x="14" y="4" width="4" height="16" strokeWidth="2" />
+                        </svg>
+                      ) : (
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <polygon points="5 3 19 12 5 21 5 3" strokeWidth="2" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
