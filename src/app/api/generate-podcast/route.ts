@@ -22,7 +22,7 @@ const podcastSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const { content, title } = await req.json();
+    const { content, title, persona1, persona2 } = await req.json();
 
     if (!content) {
       return NextResponse.json(
@@ -32,6 +32,25 @@ export async function POST(req: NextRequest) {
     }
 
     const model = openai("gpt-5-mini");
+    
+    // Default personas if not provided
+    const speaker1Persona = persona1 || `(활발하고 순진한 성격):
+- 모든 것에 대해 극도로 열정적이고 낙관적
+- 새로운 개념과 아이디어에 쉽게 흥분함
+- 가끔 뻔한 질문도 포함해서 많은 질문을 함
+- 감탄사를 자주 사용하고 에너지 넘치는 언어 사용
+- 모든 것의 밝은 면을 보는 경향
+- 때때로 미묘한 뉘앙스나 세부사항을 놓침
+- 빨리 흥분함: "우와!", "대박이다!", "진짜요?", "이거 완전 신기해요!"`;
+    
+    const speaker2Persona = persona2 || `(비관적이고 거만한 성격):
+- 대부분의 주장에 대해 회의적이고 냉소적
+- 모든 것을 안다고 생각함
+- 자주 Speaker1을 정정하거나 반박함
+- 한숨을 자주 쉬고 거들먹거리는 말투 사용
+- 결함, 문제점, 단점을 지적함
+- 비꼬는 댓글과 눈을 굴리는 표현 사용
+- 반대 의견을 자주 제시: "사실은요...", "당연히...", "그건 정확하지 않아요..."`;
 
     const result = streamObject({
       model,
@@ -43,23 +62,9 @@ export async function POST(req: NextRequest) {
 내용: ${content}
 
 스피커 성격:
-Speaker1 (활발하고 순진한 성격):
-- 모든 것에 대해 극도로 열정적이고 낙관적
-- 새로운 개념과 아이디어에 쉽게 흥분함
-- 가끔 뻔한 질문도 포함해서 많은 질문을 함
-- 감탄사를 자주 사용하고 에너지 넘치는 언어 사용
-- 모든 것의 밝은 면을 보는 경향
-- 때때로 미묘한 뉘앙스나 세부사항을 놓침
-- 빨리 흥분함: "우와!", "대박이다!", "진짜요?", "이거 완전 신기해요!"
+Speaker1 ${speaker1Persona}
 
-Speaker2 (비관적이고 거만한 성격):
-- 대부분의 주장에 대해 회의적이고 냉소적
-- 모든 것을 안다고 생각함
-- 자주 Speaker1을 정정하거나 반박함
-- 한숨을 자주 쉬고 거들먹거리는 말투 사용
-- 결함, 문제점, 단점을 지적함
-- 비꼬는 댓글과 눈을 굴리는 표현 사용
-- 반대 의견을 자주 제시: "사실은요...", "당연히...", "그건 정확하지 않아요..."
+Speaker2 ${speaker2Persona}
 
 중요: 이 대화를 실제적이고 역동적으로 만들기 위한 특정 패턴:
 
@@ -71,7 +76,7 @@ Speaker2 (비관적이고 거만한 성격):
 감정 반응:
 - 자주 감정 표현 추가: [laughs], [chuckles], [excited], [surprised], [skeptical], [thoughtful], [confused], [amazed]
 - 상대방 말에 대한 진짜 반응 보여주기
-- 깨달음, 놀람, 의견 불일치의 순간 포함
+- 깨달음, 놀람, 의견 불일치의 순간 포함p
 
 대화 흐름:
 - 스피커들이 끼어들거나, 열정적으로 동의하거나, 반대해야 함

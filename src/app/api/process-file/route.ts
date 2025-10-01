@@ -37,19 +37,20 @@ async function extractTextFromPPTX(buffer: Buffer): Promise<string> {
       
       // Extract text from slide
       const texts: string[] = [];
-      const extractText = (obj: any): void => {
+      const extractText = (obj: unknown): void => {
         if (typeof obj === 'string') {
           texts.push(obj);
         } else if (typeof obj === 'object' && obj !== null) {
-          for (const key in obj) {
+          const objAsRecord = obj as Record<string, unknown>;
+          for (const key in objAsRecord) {
             if (key === 't') { // Text element in PowerPoint XML
-              if (Array.isArray(obj[key])) {
-                texts.push(...obj[key]);
+              if (Array.isArray(objAsRecord[key])) {
+                texts.push(...(objAsRecord[key] as string[]));
               } else {
-                texts.push(obj[key]);
+                texts.push(objAsRecord[key] as string);
               }
             } else {
-              extractText(obj[key]);
+              extractText(objAsRecord[key]);
             }
           }
         }
@@ -106,6 +107,7 @@ export async function POST(req: NextRequest) {
     if (fileType === 'application/pdf') {
       try {
         // Try dynamic import for pdf-parse
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const pdfParse = require('pdf-parse');
         const data = await pdfParse(buffer);
         content = data.text;
@@ -233,7 +235,7 @@ export async function POST(req: NextRequest) {
       // For other document types, try to read as text
       try {
         content = await file.text();
-      } catch (error) {
+      } catch {
         return NextResponse.json({ 
           error: 'Unable to process this file type. Please use supported formats.' 
         }, { status: 400 });

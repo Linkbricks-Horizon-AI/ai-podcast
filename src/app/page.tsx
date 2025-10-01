@@ -29,6 +29,28 @@ export default function Home() {
   const [selectedVoice2, setSelectedVoice2] = useState('NNl6r8mD7vthiJatiJt1'); // Bradford default
   const [playingPreview, setPlayingPreview] = useState<string | null>(null);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+  
+  // 페르소나 상태
+  const defaultPersona1 = `(활발하고 순진한 성격):
+- 모든 것에 대해 극도로 열정적이고 낙관적
+- 새로운 개념과 아이디어에 쉽게 흥분함
+- 가끔 뻔한 질문도 포함해서 많은 질문을 함
+- 감탄사를 자주 사용하고 에너지 넘치는 언어 사용
+- 모든 것의 밝은 면을 보는 경향
+- 때때로 미묘한 뉘앙스나 세부사항을 놓침
+- 빨리 흥분함: "우와!", "대박이다!", "진짜요?", "이거 완전 신기해요!"`;
+  
+  const defaultPersona2 = `(비관적이고 거만한 성격):
+- 대부분의 주장에 대해 회의적이고 냉소적
+- 모든 것을 안다고 생각함
+- 자주 Speaker1을 정정하거나 반박함
+- 한숨을 자주 쉬고 거들먹거리는 말투 사용
+- 결함, 문제점, 단점을 지적함
+- 비꼬는 댓글과 눈을 굴리는 표현 사용
+- 반대 의견을 자주 제시: "사실은요...", "당연히...", "그건 정확하지 않아요..."`;
+
+  const [persona1, setPersona1] = useState(defaultPersona1);
+  const [persona2, setPersona2] = useState(defaultPersona2);
 
   // voices.json 로드
   useEffect(() => {
@@ -123,7 +145,9 @@ export default function Home() {
         },
         body: JSON.stringify({ 
           content, 
-          title: title || selectedFile.name 
+          title: title || selectedFile.name,
+          persona1,
+          persona2
         }),
       });
 
@@ -203,7 +227,9 @@ export default function Home() {
         },
         body: JSON.stringify({ 
           content: textInput, 
-          title: 'Direct Text Input' 
+          title: 'Direct Text Input',
+          persona1,
+          persona2
         }),
       });
 
@@ -303,7 +329,9 @@ export default function Home() {
         },
         body: JSON.stringify({ 
           content: scrapeData.content, 
-          title: scrapeData.title 
+          title: scrapeData.title,
+          persona1,
+          persona2
         }),
       });
 
@@ -669,7 +697,7 @@ export default function Home() {
               />
               <button
                 type="submit"
-                disabled={isLoading || !url.trim() || inputMode !== 'url'}
+                disabled={isLoading || !url.trim() || inputMode !== 'url' || isGeneratingAudio}
                 className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2.5 px-4 rounded-md font-medium hover:from-blue-500 hover:to-indigo-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 shadow-md"
               >
                 {isLoading && inputMode === 'url' && (
@@ -718,7 +746,7 @@ export default function Home() {
               />
               <button
                 type="button"
-                disabled={isLoading || !textInput.trim() || inputMode !== 'text'}
+                disabled={isLoading || !textInput.trim() || inputMode !== 'text' || isGeneratingAudio}
                 className="w-full mt-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2.5 px-4 rounded-md font-medium hover:from-blue-500 hover:to-indigo-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 shadow-md"
                 onClick={() => handleTextSubmit()}
               >
@@ -789,7 +817,7 @@ export default function Home() {
                 )}
                 <button
                   type="button"
-                  disabled={isLoading || !selectedFile || inputMode !== 'file' || !!fileError}
+                  disabled={isLoading || !selectedFile || inputMode !== 'file' || !!fileError || isGeneratingAudio}
                   className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2.5 px-4 rounded-md font-medium hover:from-blue-500 hover:to-indigo-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 shadow-md"
                   onClick={() => handleFileSubmit()}
                 >
@@ -903,15 +931,15 @@ export default function Home() {
               )}
             </div>
 
-            <div className="rounded-xl border border-white/30 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-xl shadow-lg p-4">
+            <div className="rounded-xl border border-white/30 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-xl shadow-lg p-4 flex-1 flex flex-col">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Voices</h3>
-              <div className="space-y-3">
+              <div className="flex-1 flex flex-col space-y-3">
                 {/* Speaker 1 */}
-                <div>
+                <div className="flex-1 flex flex-col">
                   <label className="text-xs font-medium text-blue-600 dark:text-blue-400 block mb-1">
                     Speaker 1
                   </label>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 mb-2">
                     <select
                       value={selectedVoice1}
                       onChange={(e) => setSelectedVoice1(e.target.value)}
@@ -941,14 +969,20 @@ export default function Home() {
                       )}
                     </button>
                   </div>
+                  <textarea
+                    value={persona1}
+                    onChange={(e) => setPersona1(e.target.value)}
+                    placeholder="Speaker 1 페르소나 입력..."
+                    className="flex-1 w-full min-h-[100px] text-xs rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                  />
                 </div>
 
                 {/* Speaker 2 */}
-                <div>
+                <div className="flex-1 flex flex-col">
                   <label className="text-xs font-medium text-blue-600 dark:text-blue-400 block mb-1">
                     Speaker 2
                   </label>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 mb-2">
                     <select
                       value={selectedVoice2}
                       onChange={(e) => setSelectedVoice2(e.target.value)}
@@ -978,6 +1012,12 @@ export default function Home() {
                       )}
                     </button>
                   </div>
+                  <textarea
+                    value={persona2}
+                    onChange={(e) => setPersona2(e.target.value)}
+                    placeholder="Speaker 2 페르소나 입력..."
+                    className="flex-1 w-full min-h-[100px] text-xs rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                  />
                 </div>
               </div>
             </div>
@@ -995,7 +1035,7 @@ export default function Home() {
             <img 
               src="/logo_dark.png" 
               alt="HORIZON-AI - BEYOND GENERATION" 
-              className="h-[120px] w-auto"
+              className="h-[72px] w-auto"
             />
           </a>
         </div>

@@ -4,6 +4,12 @@ AI 기반 팟캐스트 대화 생성기 - URL, 텍스트, 문서를 자연스러
 
 ## ✨ 최근 업데이트
 
+- **2025-01-01**
+  - **페르소나 커스터마이징**: 각 화자의 성격과 대화 스타일을 자유롭게 설정 가능
+  - **UI/UX 개선**: Voices 컨테이너 확장 및 페르소나 입력 박스 크기 최적화
+  - **로고 크기 조정**: 페이지 하단 로고 크기 최적화 (72px)
+  - **버튼 상태 관리**: 오디오 생성 중 Generate Conversation 버튼 자동 비활성화
+
 - **2024-12-31**
   - **음성 선택 기능 추가**: 33개의 다양한 ElevenLabs 음성 중 선택 가능
   - **음성 미리듣기**: 각 음성별 샘플 재생 버튼 추가
@@ -41,8 +47,9 @@ AI 기반 팟캐스트 대화 생성기 - URL, 텍스트, 문서를 자연스러
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **AI Services**:
-  - OpenAI GPT-4o (대화 생성, 이미지 분석)
-  - ElevenLabs (TTS)
+  - OpenAI GPT-5-mini (팟캐스트 대화 생성)
+  - OpenAI GPT-4o (이미지 분석, 문서 요약)
+  - ElevenLabs (TTS, eleven_v3 모델)
   - Firecrawl (웹 스크래핑)
 - **Document Parsing**:
   - pdf-parse (PDF)
@@ -169,13 +176,15 @@ NODE_ENV=production
 ### 감정 표현
 대화에 [excited], [skeptical] 등의 감정 태그가 포함되어 더욱 생동감 있는 음성 생성이 가능합니다.
 
-### 화자 특성
+### 화자 특성 및 페르소나
 - **Speaker1**: 활기차고 순진한 성격, 모든 것에 열정적
-  - 기본값: Blondie (Conversational)
+  - 기본 음성: Blondie (Conversational)
   - 33개 음성 중 자유롭게 선택 가능
+  - **페르소나 커스터마이징 가능**: 텍스트 입력으로 성격, 말투, 특징 자유 설정
 - **Speaker2**: 비관적이고 오만한 성격, 회의적인 시각
-  - 기본값: Bradford (Narrative & Story)
+  - 기본 음성: Bradford (Narrative & Story)
   - 33개 음성 중 자유롭게 선택 가능
+  - **페르소나 커스터마이징 가능**: 텍스트 입력으로 성격, 말투, 특징 자유 설정
 
 ### 오디오 컨트롤
 - **재생/일시정지**: 생성된 팟캐스트 재생 제어
