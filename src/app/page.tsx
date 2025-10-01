@@ -3,6 +3,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DialogueInput } from '@/types';
 
+// CSS for sound wave animation
+const soundWaveStyle = `
+  @keyframes soundWave {
+    0%, 100% {
+      transform: scaleY(0.5);
+    }
+    50% {
+      transform: scaleY(1);
+    }
+  }
+`;
+
 export default function Home() {
   // Default URL per request
   const [url, setUrl] = useState('https://openai.com/index/introducing-gpt-5/');
@@ -628,6 +640,7 @@ export default function Home() {
 
   return (
     <div className="relative font-sans min-h-screen p-6 lg:p-8 overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-pink-50 dark:from-slate-900 dark:via-slate-950 dark:to-black">
+      <style jsx>{soundWaveStyle}</style>
       {/* Glows */}
       <div className="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-gradient-to-br from-fuchsia-500/25 to-indigo-500/25 blur-3xl glow-pulse" />
       <div className="pointer-events-none absolute -bottom-24 -right-24 h-[28rem] w-[28rem] rounded-full bg-gradient-to-tr from-cyan-400/20 to-emerald-500/20 blur-3xl glow-pulse" />
@@ -918,11 +931,49 @@ export default function Home() {
                   />
                 </div>
               ) : (
-                <div className="w-full h-24 bg-white/40 dark:bg-white/5 border border-white/30 dark:border-white/10 rounded flex items-center justify-center text-sm text-gray-500 dark:text-gray-400 backdrop-blur">
+                <div className="w-full h-24 bg-white/40 dark:bg-white/5 border border-white/30 dark:border-white/10 rounded flex items-center justify-center text-sm text-gray-500 dark:text-gray-400 backdrop-blur overflow-hidden relative">
                   {isGeneratingAudio ? (
-                    <div className="flex items-center gap-2">
-                      <span className="inline-block h-3 w-3 rounded-full bg-blue-500 animate-pulse" />
-                      <span>Generating audio…</span>
+                    <div className="relative w-full h-full flex items-center justify-center">
+                      {/* Background gradient animation */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 animate-pulse" />
+                      
+                      {/* Sound wave animation */}
+                      <div className="relative flex items-center gap-1 z-10">
+                        {[...Array(7)].map((_, i) => (
+                          <div
+                            key={i}
+                            className="w-1 bg-gradient-to-t from-blue-500 to-purple-500 rounded-full"
+                            style={{
+                              height: `${[35, 45, 30, 50, 25, 40, 35][i]}px`,
+                              animation: `soundWave ${[1.0, 1.2, 0.8, 1.4, 0.9, 1.1, 1.3][i]}s ease-in-out infinite`,
+                              animationDelay: `${i * 0.1}s`
+                            }}
+                          />
+                        ))}
+                      </div>
+                      
+                      {/* Text with enhanced styling */}
+                      <div className="absolute bottom-2 left-0 right-0 text-center">
+                        <span className="text-xs font-medium text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 animate-pulse">
+                          AI 음성 합성 중... {conversationTurns && `(${conversationTurns} turns)`}
+                        </span>
+                      </div>
+                      
+                      {/* Floating particles */}
+                      <div className="absolute inset-0 pointer-events-none">
+                        {[...Array(3)].map((_, i) => (
+                          <div
+                            key={i}
+                            className="absolute h-1 w-1 bg-blue-400 rounded-full animate-ping"
+                            style={{
+                              top: `${20 + i * 25}%`,
+                              left: `${10 + i * 30}%`,
+                              animationDelay: `${i * 0.3}s`,
+                              animationDuration: '2s'
+                            }}
+                          />
+                        ))}
+                      </div>
                     </div>
                   ) : (
                     <span>No audio yet.</span>
