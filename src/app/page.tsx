@@ -493,8 +493,13 @@ export default function Home() {
     }
     if (audioUrl) return isPlaying ? 'Playing podcast' : 'Podcast ready';
     if (isLoading) return 'Starting…';
-    return 'Awaiting URL';
-  }, [steps, audioUrl, isLoading, conversationTurns, isPlaying]);
+    
+    // Dynamic message based on input mode
+    if (inputMode === 'url') return 'Awaiting URL';
+    if (inputMode === 'text') return 'Awaiting Text';
+    if (inputMode === 'file') return 'Awaiting File';
+    return 'Awaiting Input';
+  }, [steps, audioUrl, isLoading, conversationTurns, isPlaying, inputMode]);
 
   const nextSteps = useMemo(() => {
     const firstPendingIdx = steps.findIndex((s) => s.status !== 'complete');
