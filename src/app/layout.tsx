@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "HORIZON-AI POD CAST GENERATOR",
-  description: "Generate AI-powered podcasts with multiple speakers using ElevenLabs AI voices",
+  description: "Generate AI-powered podcasts with multiple speakers using Horizon-AI AI Workflow",
   manifest: '/manifest.json',
   icons: {
     icon: [
