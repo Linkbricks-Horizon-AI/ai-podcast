@@ -18,7 +18,7 @@ const soundWaveStyle = `
 
 export default function Home() {
   // Default URL per request
-  const [url, setUrl] = useState('https://openai.com/index/introducing-gpt-5/');
+  const [url, setUrl] = useState('https://www.horizonai.ai');
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
