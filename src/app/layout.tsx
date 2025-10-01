@@ -16,6 +16,20 @@ export const metadata: Metadata = {
   title: "HORIZON-AI POD CAST GENERATOR",
   description: "Generate AI-powered podcasts with multiple speakers using Horizon-AI AI Workflow",
   manifest: '/manifest.json',
+  metadataBase: new URL('https://horizonai-podcast.onrender.com'),
+  openGraph: {
+    title: 'HORIZON-AI POD CAST GENERATOR',
+    description: 'Generate AI-powered podcasts with multiple speakers using Horizon-AI AI Workflow',
+    url: 'https://horizonai-podcast.onrender.com',
+    siteName: 'HORIZON-AI POD CAST GENERATOR',
+    locale: 'ko_KR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'HORIZON-AI POD CAST GENERATOR',
+    description: 'Generate AI-powered podcasts with multiple speakers using Horizon-AI AI Workflow',
+  },
   icons: {
     icon: [
       { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
