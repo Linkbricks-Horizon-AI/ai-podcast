@@ -1,8 +1,14 @@
 # HORIZON-AI POD CAST GENERATOR 🎙️
 
-AI 기반 팟캐스트 대화 생성기 - URL, 텍스트, 문서를 자연스러운 한국어 팟캐스트 대화로 변환합니다.
+AI 기반 팟캐스트 대화 생성기 - URL, 텍스트, 문서를 자연스러운 다국어 팟캐스트 대화로 변환합니다.
 
 ## ✨ 최근 업데이트
+
+- **2025-01-02**
+  - **🌍 다국어 지원 추가**: 14개 언어 지원 (한국어, 영어, 중국어, 일본어, 스페인어, 힌디어, 프랑스어, 아랍어, 독일어, 베트남어, 포르투갈어, 러시아어, 태국어, 인도네시아어)
+  - **언어별 최적화**: 각 언어에 맞는 자연스러운 대화 스타일과 페르소나
+  - **언어 선택 UI**: 7x2 그리드 레이아웃으로 깔끔한 언어 선택 인터페이스
+  - **툴팁 지원**: 각 언어 버튼에 마우스 오버 시 전체 언어 이름 표시
 
 - **2025-01-01**
   - **페르소나 커스터마이징**: 각 화자의 성격과 대화 스타일을 자유롭게 설정 가능
@@ -28,10 +34,13 @@ AI 기반 팟캐스트 대화 생성기 - URL, 텍스트, 문서를 자연스러
   - 텍스트 직접 입력
   - 파일 업로드 (이미지, PDF, DOCX, XLSX, PPTX, CSV, TXT, MD)
   
-- **한국어 팟캐스트 생성**
-  - GPT-4o를 활용한 자연스러운 한국어 대화 생성
+- **🌍 14개 언어 지원 팟캐스트 생성**
+  - **지원 언어**: 한국어, English, 中文, 日本語, Español, हिन्दी, Français, العربية, Deutsch, Tiếng Việt, Português, Русский, ไทย, Bahasa Indonesia
+  - GPT-5-mini를 활용한 자연스러운 다국어 대화 생성
+  - 언어별 최적화된 대화 스타일 및 페르소나
   - 두 명의 화자 (활기찬 Speaker1, 비관적인 Speaker2)
   - 실시간 스트리밍 대화 표시
+  - 감정 표현은 모든 언어에서 영어로 통일 ([laughs], [excited] 등)
   
 - **음성 합성**
   - ElevenLabs API를 통한 고품질 TTS
@@ -47,10 +56,13 @@ AI 기반 팟캐스트 대화 생성기 - URL, 텍스트, 문서를 자연스러
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 - **AI Services**:
-  - OpenAI GPT-5-mini (팟캐스트 대화 생성)
+  - OpenAI GPT-5-mini (다국어 팟캐스트 대화 생성)
   - OpenAI GPT-4o (이미지 분석, 문서 요약)
   - ElevenLabs (TTS, eleven_v3 모델)
   - Firecrawl (웹 스크래핑)
+- **Localization**:
+  - 14개 언어 지원 리소스 관리 체계 (`src/locales/prompts.ts`)
+  - 언어별 페르소나 및 대화 프롬프트 템플릿
 - **Document Parsing**:
   - pdf-parse (PDF)
   - mammoth (DOCX)
@@ -148,17 +160,24 @@ NODE_ENV=production
 
 ## 📝 사용 방법
 
-### URL 입력
+### 1. 언어 선택
+Conversation 섹션에서 원하는 언어를 선택합니다 (기본값: 한국어)
+- 14개 언어 중 선택 가능
+- 언어 버튼에 마우스를 올리면 전체 언어 이름 확인 가능
+
+### 2. 입력 소스 선택
+
+#### URL 입력
 1. "URL to convert" 라디오 버튼 선택
 2. 웹 페이지 URL 입력 (뉴스 기사, 블로그 등)
 3. "Generate Conversation" 클릭
 
-### 텍스트 입력
+#### 텍스트 입력
 1. "Text to convert" 라디오 버튼 선택
 2. 텍스트 직접 입력
 3. "Generate Conversation" 클릭
 
-### 파일 업로드
+#### 파일 업로드
 1. "File to convert" 라디오 버튼 선택
 2. 파일 드래그 앤 드롭 또는 클릭하여 선택
 3. "Generate Conversation" 클릭

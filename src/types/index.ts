@@ -15,3 +15,6 @@ export type Result<T> =
 
 export const Ok = <T>(value: T): Result<T> => ({ ok: true, value });
 export const Err = <T>(error: string): Result<T> => ({ ok: false, error });
+
+// Re-export Language type from locales
+export type { Language, LanguageOption } from '@/locales/prompts';

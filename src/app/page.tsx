@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { DialogueInput } from '@/types';
+import { DialogueInput, Language } from '@/types';
+import { SUPPORTED_LANGUAGES, getPrompts } from '@/locales/prompts';
 
 // CSS for sound wave animation
 const soundWaveStyle = `
@@ -42,27 +43,19 @@ export default function Home() {
   const [playingPreview, setPlayingPreview] = useState<string | null>(null);
   const previewAudioRef = useRef<HTMLAudioElement | null>(null);
   
-  // 페르소나 상태
-  const defaultPersona1 = `(활발하고 순진한 성격):
-- 모든 것에 대해 극도로 열정적이고 낙관적
-- 새로운 개념과 아이디어에 쉽게 흥분함
-- 가끔 뻔한 질문도 포함해서 많은 질문을 함
-- 감탄사를 자주 사용하고 에너지 넘치는 언어 사용
-- 모든 것의 밝은 면을 보는 경향
-- 때때로 미묘한 뉘앙스나 세부사항을 놓침
-- 빨리 흥분함: "우와!", "대박이다!", "진짜요?", "이거 완전 신기해요!"`;
+  // 언어 선택 상태
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>('korean');
   
-  const defaultPersona2 = `(비관적이고 거만한 성격):
-- 대부분의 주장에 대해 회의적이고 냉소적
-- 모든 것을 안다고 생각함
-- 자주 Speaker1을 정정하거나 반박함
-- 한숨을 자주 쉬고 거들먹거리는 말투 사용
-- 결함, 문제점, 단점을 지적함
-- 비꼬는 댓글과 눈을 굴리는 표현 사용
-- 반대 의견을 자주 제시: "사실은요...", "당연히...", "그건 정확하지 않아요..."`;
+  // 페르소나 상태 - 언어에 따라 기본값 변경
+  const currentPrompts = useMemo(() => getPrompts(selectedLanguage), [selectedLanguage]);
+  const [persona1, setPersona1] = useState(currentPrompts.defaultPersona1);
+  const [persona2, setPersona2] = useState(currentPrompts.defaultPersona2);
 
-  const [persona1, setPersona1] = useState(defaultPersona1);
-  const [persona2, setPersona2] = useState(defaultPersona2);
+  // 언어 변경 시 페르소나 업데이트
+  useEffect(() => {
+    setPersona1(currentPrompts.defaultPersona1);
+    setPersona2(currentPrompts.defaultPersona2);
+  }, [selectedLanguage, currentPrompts]);
 
   // voices.json 로드
   useEffect(() => {
@@ -159,7 +152,8 @@ export default function Home() {
           content, 
           title: title || selectedFile.name,
           persona1,
-          persona2
+          persona2,
+          language: selectedLanguage
         }),
       });
 
@@ -241,7 +235,8 @@ export default function Home() {
           content: textInput, 
           title: 'Direct Text Input',
           persona1,
-          persona2
+          persona2,
+          language: selectedLanguage
         }),
       });
 
@@ -343,7 +338,8 @@ export default function Home() {
           content: scrapeData.content, 
           title: scrapeData.title,
           persona1,
-          persona2
+          persona2,
+          language: selectedLanguage
         }),
       });
 
@@ -850,6 +846,33 @@ export default function Home() {
               {!isConversationComplete && conversation && (
                 <span className="text-xs text-blue-600 dark:text-blue-400">Streaming…</span>
               )}
+            </div>
+            
+            {/* Language Selection Radio Buttons */}
+            <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+              <div className="grid grid-cols-7 gap-2">
+                {SUPPORTED_LANGUAGES.map((lang) => (
+                  <label
+                    key={lang.code}
+                    className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg cursor-pointer transition-colors text-xs font-medium hover:bg-white/40 dark:hover:bg-white/10 min-w-0"
+                    style={{
+                      backgroundColor: selectedLanguage === lang.code ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
+                      color: selectedLanguage === lang.code ? 'rgb(37, 99, 235)' : 'inherit'
+                    }}
+                    title={`${lang.nativeName} (${lang.label})`}
+                  >
+                    <input
+                      type="radio"
+                      name="language"
+                      value={lang.code}
+                      checked={selectedLanguage === lang.code}
+                      onChange={(e) => setSelectedLanguage(e.target.value as Language)}
+                      className="w-3.5 h-3.5 text-blue-600 focus:ring-blue-500 flex-shrink-0"
+                    />
+                    <span className="truncate text-[0.7rem]">{lang.nativeName}</span>
+                  </label>
+                ))}
+              </div>
             </div>
             <div className="bg-white/40 dark:bg-white/5 rounded p-4 space-y-3 overflow-y-auto border border-white/30 dark:border-white/10 backdrop-blur flex-1">
               {conversation ? (
